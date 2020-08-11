@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "*.y": "yacc",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "string": "cpp"
     }
 }

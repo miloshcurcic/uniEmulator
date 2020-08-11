@@ -6,7 +6,7 @@
 
 struct Input_File {
     Elf16_Header header;
-    vector<vector<Elf16_Byte>> sections;
+    vector<vector<Byte>> sections;
     vector<Elf16_SH_Entry> section_headers;
 };
 

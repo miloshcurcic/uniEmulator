@@ -10,6 +10,8 @@
 #include <iostream>
 #include <algorithm>
 
+#include "types.h"
+
 using namespace std;
 
 #endif
