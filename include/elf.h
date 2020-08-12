@@ -18,6 +18,8 @@ struct Elf16_Header {
     Word phentries;
     Offs shoffs;
     Word shentries;
+    Word symtabndx;
+    Word strndx;
     Word shstrndx;
 };
 
@@ -38,21 +40,26 @@ enum Elf16_Section_Flag : Byte {
 struct Elf16_SH_Entry {
     Word name;
     Elf16_Section_Type type;
-    Byte flags;
     Offs offs;
     Word size;
-    Word link;
+    Word rel;
 };
 
-enum Elf16_Sym_Link : Byte {
-    ESL_LOCAL,
-    ESL_GLOBAL
+enum Elf16_Sym_Bind : Byte {
+    ESB_LOCAL,
+    ESB_GLOBAL
+};
+
+enum Elf16_Sym_Type : Byte {
+    EST_NOTYPE,
+    EST_SECTION
 };
 
 struct Elf16_ST_Entry {
     Word name;
     Word value;
-    Elf16_Sym_Link link;
+    Elf16_Sym_Bind bind;
+    Elf16_Sym_Type type;
     Word shndx;
 };
 

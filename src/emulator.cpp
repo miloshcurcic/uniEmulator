@@ -1,13 +1,196 @@
 #include "emulator.h"
-#include "cpu_context.h"
-#include "../include/memory.h"
-#include "instruction.h"
 
-void run() {
+CPU_Context Emulator::cpu_context;
+Byte Emulator::memory[MEMORY_SIZE];
+
+void Emulator::load_data(vector<pair<Addr, vector<Byte>>> data_vector) {
+    for(auto& data : data_vector) {
+        memcpy((char*)(memory + data.first), data.second.data(), data.second.size());
+    }
+}
+
+void Emulator::initialize() {
+    cpu_context.regs[PC_REG_NDX].addr = MEM_READ_DIR(0, Addr);
+}
+
+DecodedInsDescr Emulator::read_ins() {
+    Byte instr_descr = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Byte);
+    cpu_context.regs[PC_REG_NDX].word++;
+
+    return {(Operation)INS_OP_CODE(instr_descr), (OpBytes)INS_SIZE(instr_descr)};
+}
+
+Addr Emulator::read_op_addr() {
+    Byte op_descr = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Byte);
+    cpu_context.regs[PC_REG_NDX].word++;
+
+    switch (OP_ADDRESSING(op_descr)) {
+        case AddressingMode::AM_IMMED: {
+            Addr res = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Addr);
+            cpu_context.regs[PC_REG_NDX].word += 2;
+
+            return res;
+        }
+        case AddressingMode::AM_REGDIR: {
+            return (Addr)cpu_context.regs[OP_REG(op_descr)].word;
+        }
+        case AddressingMode::AM_REGIND: {
+            return MEM_READ_DIR(OP_REG(op_descr), Addr);
+        }
+        case AddressingMode::AM_BASEREG: {
+            Offs offs = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Offs);
+            cpu_context.regs[PC_REG_NDX].word += 2;
+
+            return MEM_READ_DIR(cpu_context.regs[OP_REG(op_descr)].word + offs, Addr);
+        }
+        case AddressingMode::AM_MEMDIR: {
+            Addr addr = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Addr);
+            cpu_context.regs[PC_REG_NDX].word += 2;
+
+            return MEM_READ_DIR(addr, Addr);
+        }
+    }
+}
+
+
+Word Emulator::read_op_val_word() {
+    Byte op_descr = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Byte);
+    cpu_context.regs[PC_REG_NDX].word++;
+
+    switch (OP_ADDRESSING(op_descr)) {
+        case AddressingMode::AM_IMMED: {
+            Word res = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Word);
+            cpu_context.regs[PC_REG_NDX].word += 2;
+
+            return res;
+        }
+        case AddressingMode::AM_REGDIR: {
+            return cpu_context.regs[OP_REG(op_descr)].word;
+        }
+        case AddressingMode::AM_REGIND: {
+            return MEM_READ_DIR(OP_REG(op_descr), Word);
+        }
+        case AddressingMode::AM_BASEREG: {
+            Offs offs = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Offs);
+            cpu_context.regs[PC_REG_NDX].word += 2;
+
+            return MEM_READ_DIR(cpu_context.regs[OP_REG(op_descr)].word + offs, Word);
+        }
+        case AddressingMode::AM_MEMDIR: {
+            Addr addr = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Addr);
+            cpu_context.regs[PC_REG_NDX].word += 2;
+
+            return MEM_READ_DIR(addr, Word);
+        }
+    }
+}
+
+Byte Emulator::read_op_val_byte() {
+    Byte op_descr = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Byte);
+    cpu_context.regs[PC_REG_NDX].word++;
+
+    switch (OP_ADDRESSING(op_descr)) {
+        case AddressingMode::AM_IMMED: {
+            Byte res = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Byte);
+            cpu_context.regs[PC_REG_NDX].word += 1;
+
+            return res;
+        }
+        case AddressingMode::AM_REGDIR: {
+            return cpu_context.regs[OP_REG(op_descr)].half[OP_REG_LH(op_descr)];
+        }
+        case AddressingMode::AM_REGIND: {
+            return MEM_READ_DIR(OP_REG(op_descr), Byte);
+        }
+        case AddressingMode::AM_BASEREG: {
+            Offs offs = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Offs);
+            cpu_context.regs[PC_REG_NDX].word += 2;
+
+            return MEM_READ_DIR(cpu_context.regs[OP_REG(op_descr)].word + offs, Byte);
+        }
+        case AddressingMode::AM_MEMDIR: {
+            Addr addr = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Addr);
+            cpu_context.regs[PC_REG_NDX].word += 2;
+
+            return MEM_READ_DIR(addr, Byte);
+        }
+        default: {
+
+        }
+    }
+}
+
+Word* Emulator::read_op_ptr_word() {
+    Byte op_descr = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Byte);
+    cpu_context.regs[PC_REG_NDX].word++;
+
+    switch (OP_ADDRESSING(op_descr)) {
+        case AddressingMode::AM_IMMED: {
+            // Error
+            return 0;
+        }
+        case AddressingMode::AM_REGDIR: {
+            return &cpu_context.regs[OP_REG(op_descr)].word;
+        }
+        case AddressingMode::AM_REGIND: {
+            return &MEM_READ_DIR(OP_REG(op_descr), Word);
+        }
+        case AddressingMode::AM_BASEREG: {
+            Offs offs = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Offs);
+            cpu_context.regs[PC_REG_NDX].word += 2;
+
+            return &MEM_READ_DIR(cpu_context.regs[OP_REG(op_descr)].word + offs, Word);
+        }
+        case AddressingMode::AM_MEMDIR: {
+            Addr addr = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Addr);
+            cpu_context.regs[PC_REG_NDX].word += 2;
+
+            return &MEM_READ_DIR(addr, Word);
+        }
+        default: {
+
+        }
+    }
+}
+
+Byte* Emulator::read_op_ptr_byte() {
+    Byte op_descr = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Byte);
+    cpu_context.regs[PC_REG_NDX].word++;
+
+    switch (OP_ADDRESSING(op_descr)) {
+        case AddressingMode::AM_IMMED: {
+            // Error
+            return 0;
+        }
+        case AddressingMode::AM_REGDIR: {
+            return &cpu_context.regs[OP_REG(op_descr)].half[OP_REG_LH(op_descr)];
+        }
+        case AddressingMode::AM_REGIND: {
+            return &MEM_READ_DIR(OP_REG(op_descr), Byte);
+        }
+        case AddressingMode::AM_BASEREG: {
+            Offs offs = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Offs);
+            cpu_context.regs[PC_REG_NDX].word += 2;
+
+            return &MEM_READ_DIR(cpu_context.regs[OP_REG(op_descr)].word + offs, Byte);
+        }
+        case AddressingMode::AM_MEMDIR: {
+            Addr addr = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Addr);
+            cpu_context.regs[PC_REG_NDX].word += 2;
+
+            return &MEM_READ_DIR(addr, Byte);
+        }
+        default: {
+
+        }
+    }
+}
+
+void Emulator::run() {
     bool running = true;
     while (running) {
         DecodedInsDescr ins_descr = read_ins();
-    
+        
         switch (ins_descr.operation) {
             case Operation::OP_HALT: {
                 running = false;

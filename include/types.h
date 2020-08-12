@@ -3,7 +3,7 @@
 
 typedef unsigned short Addr;
 typedef short Offs;
-typedef short Word;
+typedef unsigned short Word;
 typedef unsigned char Byte;
 
 #endif

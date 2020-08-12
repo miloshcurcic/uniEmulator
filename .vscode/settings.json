@@ -2,6 +2,16 @@
     "files.associations": {
         "*.y": "yacc",
         "algorithm": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "*.tcc": "cpp",
+        "vector": "cpp",
+        "deque": "cpp",
+        "array": "cpp",
+        "istream": "cpp",
+        "ostream": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "new": "cpp"
     }
 }
