@@ -2,6 +2,7 @@
 #include "linker.h"
 #include "utility.h"
 #include "emulator.h"
+#include "terminal.h"
 
 using namespace std;
 
@@ -46,5 +47,7 @@ int main(int argc, char *argv[]) {
     auto data_vector = Linker::get_instance().finalize_linking(locs);
     Emulator::load_data(data_vector);
     Emulator::initialize();
+    Terminal::initialize_terminal();
     Emulator::run();
+    Terminal::terminate();
 }

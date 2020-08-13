@@ -34,17 +34,16 @@ Input_File* Linker::read_input_file(string path) {
 
         for (uint i=0; i < sym_tab_header.size / sizeof(Elf16_ST_Entry); i++) {
             auto entry = ((Elf16_ST_Entry*)sym_tab_data)[i];
-            if (entry.bind == Elf16_Sym_Bind::ESB_LOCAL) {
+            if (entry.bind == Elf16_Sym_Bind::ESB_LOCAL || entry.shndx == UND_NDX) {
                 continue;
             }
 
-            if (entry.shndx != UND_NDX) {
+            if (entry.shndx != ABS_NDX) {
                 LST_Entry l_entry = {entry.value, string((char*)(sh_str_tab_data + section_headers[entry.shndx].name))};
                 result->defined_symbols[string((char*)str_tab_data + entry.name)] = l_entry;
             } else {
                 LST_Entry l_entry = {entry.value, ""};
                 result->defined_symbols[string((char*)str_tab_data + entry.name)] = l_entry;
-            
             }
         }
 
@@ -151,7 +150,7 @@ void Linker::link_file(Input_File* file) {
             defined_symbols[symbol.first] = symbol.second;
 
             if (section_offsets.find(symbol.second.section_name) != section_offsets.end()) {
-                defined_symbols[symbol.first].value += section_offsets[symbol.first];
+                defined_symbols[symbol.first].value += section_offsets[symbol.second.section_name];
             }
 
             if (undefined_symbols.find(symbol.first) != undefined_symbols.end()) {
@@ -163,6 +162,12 @@ void Linker::link_file(Input_File* file) {
     }
 
     for (auto& symbol : file->undefined_symbols) {
+        for (auto& rel_entry : symbol.second) {
+            if (section_offsets.find(rel_entry.section_name) != section_offsets.end()) {
+                rel_entry.offs += section_offsets[rel_entry.section_name];
+            }
+        }
+
         if (defined_symbols.find(symbol.first) != defined_symbols.end()) {
             resolve_rel_entries(symbol.first, symbol.second);
         } else {
@@ -175,11 +180,30 @@ void Linker::link_file(Input_File* file) {
     }
 
     for (auto& section_rel : file->section_relocations) {
-        if (section_offsets.find(section_rel.first) != section_offsets.end()) {
-            for (auto& rel : section_rel.second) {
-                rel.offs += section_offsets[section_rel.first];
+        for (auto& rel : section_rel.second) {
+            if (section_offsets.find(rel.section_name) != section_offsets.end()) {
+                if (section_offsets.find(section_rel.first) != section_offsets.end()) {
+                    switch(rel.type) {
+                        case Elf16_Rel_Type::ERT_16: {
+                            *(Word*)(data_sections[rel.section_name].data() + rel.offs + section_offsets[rel.section_name]) += section_offsets[section_rel.first];
+                            break;
+                        }
+                        case Elf16_Rel_Type::ERT_PC16: {
+                            *(Addr*)(data_sections[rel.section_name].data() + rel.offs + section_offsets[rel.section_name]) += section_offsets[section_rel.first];
+                            break;
+                        }
+                        case Elf16_Rel_Type::ERT_8: {
+                            *(Byte*)(data_sections[rel.section_name].data() + rel.offs + section_offsets[rel.section_name]) += section_offsets[section_rel.first];
+                            break;
+                        }
+                    }
+                }
+
+                rel.offs += section_offsets[rel.section_name];
             }
-            
+        }
+
+        if (section_relocations.find(section_rel.first) != section_relocations.end()) {            
             section_relocations[section_rel.first].insert(section_relocations[section_rel.first].end(), section_rel.second.begin(), section_rel.second.end());
         } else {
             section_relocations[section_rel.first] = section_rel.second;
@@ -204,7 +228,7 @@ void Linker::resolve_section_rels(string section_name, unordered_map<string, Add
                 break;
             }
             case Elf16_Rel_Type::ERT_16: {
-                 (Word&)*(data_sections[entry.section_name].data() + entry.offs) += section_addresses[section_name];               
+                 (Word&)*(data_sections[entry.section_name].data() + entry.offs) += section_addresses[section_name];
                 break;
             }
             case Elf16_Rel_Type::ERT_8: {
@@ -251,10 +275,10 @@ vector<pair<Addr, vector<Byte>>> Linker::finalize_linking(vector<pair<string, Ad
         section_addresses[loc.first] = last_addr;
 
         if (last_addr + data_sections[loc.first].size() > 0xffff) {
-            last_addr += data_sections[loc.first].size();
-        } else {
             // Error overflow
-        }        
+        }
+
+        last_addr += data_sections[loc.first].size();
     }
 
     for (auto& section: data_sections) {
@@ -262,7 +286,7 @@ vector<pair<Addr, vector<Byte>>> Linker::finalize_linking(vector<pair<string, Ad
             if (last_addr + section.second.size() > 0xffff) {
                 // Error overflow
             }
-
+            
             section_addresses[section.first] = last_addr;
             last_addr += section.second.size();
         }
@@ -277,8 +301,10 @@ vector<pair<Addr, vector<Byte>>> Linker::finalize_linking(vector<pair<string, Ad
     vector<pair<Addr, vector<Byte>>> res;
 
     for (auto &section : data_sections) {
-        res.push_back({section_addresses[section.first], section.second});
+        res.push_back(pair<Addr, vector<Byte>>({section_addresses[section.first], section.second}));
     }
+
+    // Empty linker
 
     return res;
 }

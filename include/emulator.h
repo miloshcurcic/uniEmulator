@@ -6,11 +6,12 @@
 #include "instruction.h"
 
 #define MEMORY_SIZE 65536
+#define TERM_DATA_IN_ADDR 0xFF00
+#define TERM_DATA_OUT_ADDR 0xFF02
+#define TIMER_CFG_ADDR 0xFF10
 
 #define MEM_READ_DIR(addr, type) *(type*)(Emulator::memory + addr)
-#define MEM_READ_IND(addr, type) *(type*)(Emulator::memory + *((Addr*)(Emulator::memory + addr)))
 #define MEM_WRITE_DIR(addr, type, val) *(type*)(Emulator::memory + addr) = val
-#define MEM_WRITE_IND(addr, type, val) *(type*)(Emulator::memory + *((Addr*)(Emulator::memory + addr))) = val
 
 class Emulator {
 public:
@@ -18,16 +19,15 @@ public:
     static void initialize();
     static void load_data(vector<pair<Addr, vector<Byte>>> data_vector);
 
+    static Byte memory[MEMORY_SIZE];
 private:
     static CPU_Context cpu_context;
-    static Byte memory[MEMORY_SIZE];
 
-    static DecodedInsDescr read_ins();
-    static Addr read_op_addr();
-    static Word read_op_val_word();
-    static Byte read_op_val_byte();
-    static Word* read_op_ptr_word();
-    static Byte* read_op_ptr_byte();
+    static inline DecodedInsDescr read_ins();
+    static inline Addr read_op_addr(Addr** addr);
+    static inline Word read_op_val_word(Word** addr);
+    static inline Byte read_op_val_byte(Byte** addr);
+    static inline void check_terminal(void* src, void* dst);
 };
 
 #endif

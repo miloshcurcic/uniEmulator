@@ -12,10 +12,10 @@ SRC = $(wildcard $(SRCDIR)/*.cpp)
 OBJ = $(patsubst $(SRCDIR)/%.cpp,$(OUTOBJDIR)/%.o,$(SRC))
 
 $(OUTDIR)/$(PROGRAM): $(OBJ)
-	$(CC) -o $@ $^
+	$(CC) -pthread -o $@ $^
 
 $(OUTOBJDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CC) -MMD -o $@ -c $< $(CFLAGS)
+	$(CC) -pthread -MMD -o $@ -c $< $(CFLAGS)
 
 -include $(OUTOBJDIR)/*.d
 
