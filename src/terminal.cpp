@@ -1,6 +1,5 @@
 #include "terminal.h"
 
-#include <stdlib.h>
 #include <termios.h>
 #include <unistd.h>
 #include "emulator.h"
@@ -13,7 +12,7 @@ std::thread* Terminal::input_thread = nullptr;
 bool Terminal::input_interrupt = false;
 
 void Terminal::cleanup_terminal() {
-  tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
 }
 
 void Terminal::initialize_terminal() {
@@ -24,27 +23,21 @@ void Terminal::initialize_terminal() {
 
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
     
-    // sem and thread mismatch
-    input_thread = new std::thread(input_run);
-
     sem_init(&input_lock, 0, 0);
+    input_thread = new std::thread(input_run);
 }
 
 void Terminal::input_run() {
     while (running) {
         char c;
-        cin >> c;
+        read(STDIN_FILENO, &c, 1);
+        MEM_WRITE_DIR(TERM_DATA_IN_ADDR, Byte, (Byte)c);
         input_interrupt = true;
         sem_wait(&input_lock);
-        input_interrupt = false;
-        MEM_WRITE_DIR(TERM_DATA_IN_ADDR, Byte, (Byte)c);
     }
 }
 
 void Terminal::continue_input() {
-    // Fix this
-    int val;
-    sem_getvalue(&input_lock, &val);
     sem_post(&input_lock);
 }
 

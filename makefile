@@ -4,6 +4,7 @@ OUTOBJDIR = $(OUTDIR)/obj
 SRCDIR = ./src
 
 CC = g++
+DBGFLAG = -g
 CFLAGS = -Wall -I$(IDIR)
 
 PROGRAM = emulator
@@ -12,10 +13,10 @@ SRC = $(wildcard $(SRCDIR)/*.cpp)
 OBJ = $(patsubst $(SRCDIR)/%.cpp,$(OUTOBJDIR)/%.o,$(SRC))
 
 $(OUTDIR)/$(PROGRAM): $(OBJ)
-	$(CC) -pthread -o $@ $^
+	$(CC) -pthread -o $@ $^ $(DBGFLAG)
 
 $(OUTOBJDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CC) -pthread -MMD -o $@ -c $< $(CFLAGS)
+	$(CC) -pthread -MMD -o $@ -c $< $(CFLAGS) $(DBGFLAG)
 
 -include $(OUTOBJDIR)/*.d
 

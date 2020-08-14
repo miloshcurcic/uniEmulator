@@ -2,7 +2,6 @@
 #include <iostream>
 
 Word Utility::cast_literal(string literal) {
-    /* Range check */
     if (literal[0] == '0') {
         if (literal.length() == 1) {
             return 0;
