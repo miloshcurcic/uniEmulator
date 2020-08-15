@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <stdexcept>
+#include "terminal.h"
 
 using namespace std;
 
@@ -25,7 +26,8 @@ const string ERR_TIMER_MISCONFIGURATION = "Invalid timer configuration.";
 class EmulatorException {
     string message;
 public:
-    EmulatorException(string message) : message(message) {}
+    EmulatorException(string message) : message(message) {
+    }
     friend ostream& operator<<(ostream& os, const EmulatorException& error);
 };
 

@@ -11,6 +11,8 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
     try {
+        cout << "| ~~~ Starting Emulator ~~~ |" << endl;
+
         vector<pair<string, Addr>> locs;
         
         for (int i=1; i<argc; i++) {
@@ -47,14 +49,15 @@ int main(int argc, char *argv[]) {
                 delete file;
             }
         }
-    
         auto data_vector = Linker::get_instance().finalize_linking(locs);
         Emulator::load_data(data_vector);
         Emulator::initialize();
         Terminal::initialize_terminal();
         Emulator::run();
         Terminal::terminate();
+        cout << endl << "| ~~~~~~ Execution Done ~~~~~~ |" << endl;
     } catch (EmulatorException& e) {
+        Terminal::terminate();
         cout << "ERROR: " << e << endl;
     }
 }

@@ -54,13 +54,13 @@ Word Emulator::read_op_val_word(Word** addr) {
             return **addr;
         }
         case AddressingMode::AM_REGIND: {
-            *addr = &MEM_READ_DIR(OP_REG(op_descr), Word);
+            *addr = &MEM_READ_DIR(cpu_context.regs[OP_REG(op_descr)].addr, Word);
             return **addr;
         }
         case AddressingMode::AM_BASEREG: {
             Offs offs = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Offs);
             cpu_context.regs[PC_REG_NDX].word += 2;
-
+            
             *addr = &MEM_READ_DIR(cpu_context.regs[OP_REG(op_descr)].word + offs, Word);
             return **addr;
         }
@@ -79,7 +79,7 @@ Word Emulator::read_op_val_word(Word** addr) {
 Byte Emulator::read_op_val_byte(Byte** addr) {
     Byte op_descr = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Byte);
     cpu_context.regs[PC_REG_NDX].word++;
-
+    
     switch (OP_ADDRESSING(op_descr)) {
         case AddressingMode::AM_IMMED: {
             Word res = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Byte);
@@ -93,7 +93,7 @@ Byte Emulator::read_op_val_byte(Byte** addr) {
             return **addr;
         }
         case AddressingMode::AM_REGIND: {
-            *addr = &MEM_READ_DIR(OP_REG(op_descr), Byte);
+            *addr = &MEM_READ_DIR(cpu_context.regs[OP_REG(op_descr)].addr, Byte);
             return **addr;
         }
         case AddressingMode::AM_BASEREG: {
@@ -106,7 +106,7 @@ Byte Emulator::read_op_val_byte(Byte** addr) {
         case AddressingMode::AM_MEMDIR: {
             Addr ad = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Addr);
             cpu_context.regs[PC_REG_NDX].word += 2;
-
+            
             *addr = &MEM_READ_DIR(ad, Byte);
             return **addr;
         }
@@ -128,7 +128,7 @@ void Emulator::run() {
 
         try {
             DecodedInsDescr ins_descr = read_ins();
-
+            
             switch (ins_descr.operation) {
                 case Operation::OP_HALT: {
                     running = false;
@@ -421,7 +421,7 @@ void Emulator::run() {
                         auto src = read_op_val_byte((Byte**)&src_addr);
                         read_op_val_byte((Byte**)&dst_addr);
 
-                        if (dst_addr == nullptr) {
+                        if (dst_addr == nullptr || src == 0) {
                             throw InvalidInsException();
                         }
 
@@ -433,7 +433,7 @@ void Emulator::run() {
                         auto src = read_op_val_word((Word**)&src_addr);
                         read_op_val_word((Word**)&dst_addr);
 
-                        if (dst_addr == nullptr) {
+                        if (dst_addr == nullptr || src == 0) {
                             throw InvalidInsException();
                         }
 
