@@ -13,6 +13,12 @@ Input_File* Linker::read_input_file(string path) {
 
         // Reading ELF Header
         in_file.read((char*)&header, sizeof(Elf16_Header));
+
+        const Byte format[ELF_FORMAT_LEN] = { 'E', 'L', 'F', '_', '1', '6' };
+        
+        if (memcmp(&header.format, &format, ELF_FORMAT_LEN) != 0) {
+            throw EmulatorException(ERR_INVALID_INPUT_FORMAT);
+        }
     
         // Reading section headers
         auto data = new Byte[header.shentries * sizeof(Elf16_SH_Entry)];
@@ -76,7 +82,11 @@ Input_File* Linker::read_input_file(string path) {
                 for (uint i=0; i < rel_section_header.size / sizeof(Elf16_RT_Entry); i++) {
                     auto entry = ((Elf16_RT_Entry*)rel_data)[i];
 
-                    if (entry.stndx != UND_NDX) {
+                    if (entry.stndx == UND_NDX) {
+                        throw EmulatorException(ERR_UND_REL_IN_INPUT);
+                    } else if (entry.stndx == ABS_NDX) {
+                        abs_relocations.push_back({entry.offs, entry.type, string((char*)(sh_str_tab_data + section.name))});
+                    } else {
                         auto st_entry = ((Elf16_ST_Entry*)sym_tab_data)[entry.stndx];
                         
                         if(st_entry.type == Elf16_Sym_Type::EST_SECTION) {
@@ -88,8 +98,6 @@ Input_File* Linker::read_input_file(string path) {
                                 result->undefined_symbols[string((char*)str_tab_data + st_entry.name)].push_back({entry.offs, entry.type, string((char*)(sh_str_tab_data + section.name))});
                             }
                         }
-                    } else {
-                        abs_relocations.push_back({entry.offs, entry.type, string((char*)(sh_str_tab_data + section.name))});    
                     }
                 }
 

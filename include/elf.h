@@ -3,6 +3,7 @@
 
 #include "includes.h"
 
+#define ELF_FORMAT_LEN 6
 #define UND_NDX 0
 #define ABS_NDX 0xffff
 
@@ -12,6 +13,7 @@ enum Elf16_File_Type : Byte {
 };
 
 struct Elf16_Header {
+    Byte format[ELF_FORMAT_LEN] = { 'E', 'L', 'F', '_', '1', '6' };
     Elf16_File_Type type;
     Addr pentry;
     Offs phoffs;

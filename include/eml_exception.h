@@ -11,7 +11,9 @@
 using namespace std;
 
 const string ERR_OPEN_IN_FILE_FAILED = "Opening input file failed.";
+const string ERR_INVALID_INPUT_FORMAT = "Invalid input file format.";
 const string ERR_DEFINED_SYBOL_REL_IN_INPUT = "Unsupported scenario: Encountered REL entry for a defined symbol in input.";
+const string ERR_UND_REL_IN_INPUT = "Relocation of UND symbol encountered in input.";
 const string ERR_SYMBOL_ALREADY_DEFINED = "Multiple definitions of symbol '%s' encountered.";
 const string ERR_UNKNOWN_REL_TYPE = "Unknown relocation type encountered.";
 const string ERR_INVALID_REL_TYPE = "Invalid relocation type encountered.";
