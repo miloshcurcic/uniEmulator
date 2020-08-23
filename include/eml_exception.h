@@ -24,6 +24,7 @@ const string ERR_SECTION_OVERFLOW = "Sections are overflowing available memory."
 const string ERR_UNKNOWN_INPUT_PARAMETER = "Unknown input parameter '%s'";
 const string ERR_INVALID_INPUT_PARAMETER = "Invalid input parameter.";
 const string ERR_TIMER_MISCONFIGURATION = "Invalid timer configuration.";
+const string ERR_UNSYNCHRONIZED_TERMINAL_ACCESS = "Unsynchronized terminal access detected!";
 
 class EmulatorException {
     string message;

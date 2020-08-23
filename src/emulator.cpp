@@ -50,14 +50,26 @@ Word Emulator::read_op_val_word(Word** addr) {
             return res;
         }
         case AddressingMode::AM_REGDIR: {
-            *addr = &cpu_context.regs[OP_REG(op_descr)].word;
+            if (OP_REG(op_descr) == Register::R_PSW) {
+                *addr = &cpu_context.psw.word;
+            } else {
+                *addr = &cpu_context.regs[OP_REG(op_descr)].word;
+            }
             return **addr;
         }
         case AddressingMode::AM_REGIND: {
+            if (OP_REG(op_descr) == Register::R_PSW) {
+                throw InvalidInsException();
+            }
+
             *addr = &MEM_READ_DIR(cpu_context.regs[OP_REG(op_descr)].addr, Word);
             return **addr;
         }
         case AddressingMode::AM_BASEREG: {
+            if (OP_REG(op_descr) == Register::R_PSW) {
+                throw InvalidInsException();
+            }
+
             Offs offs = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Offs);
             cpu_context.regs[PC_REG_NDX].word += 2;
             
@@ -89,14 +101,27 @@ Byte Emulator::read_op_val_byte(Byte** addr) {
             return res;
         }
         case AddressingMode::AM_REGDIR: {
-            *addr = &cpu_context.regs[OP_REG(op_descr)].half[OP_REG_LH(op_descr)];
+            if (OP_REG(op_descr) == Register::R_PSW) {
+                *addr = &cpu_context.psw.half[OP_REG_LH(op_descr)];
+            } else {
+                *addr = &cpu_context.regs[OP_REG(op_descr)].half[OP_REG_LH(op_descr)];
+            }
+            
             return **addr;
         }
         case AddressingMode::AM_REGIND: {
+            if (OP_REG(op_descr) == Register::R_PSW) {
+                throw InvalidInsException();
+            }
+
             *addr = &MEM_READ_DIR(cpu_context.regs[OP_REG(op_descr)].addr, Byte);
             return **addr;
         }
         case AddressingMode::AM_BASEREG: {
+            if (OP_REG(op_descr) == Register::R_PSW) {
+                throw InvalidInsException();
+            }
+
             Offs offs = MEM_READ_DIR(cpu_context.regs[PC_REG_NDX].word, Offs);
             cpu_context.regs[PC_REG_NDX].word += 2;
 
@@ -566,7 +591,7 @@ void Emulator::run() {
                     } else {
                         auto src = read_op_val_word((Word**)&src_addr);
                         read_op_val_word((Word**)&dst_addr);
-
+                        
                         if (dst_addr == nullptr) {
                             throw InvalidInsException();
                         }
@@ -739,7 +764,7 @@ void Emulator::run() {
         }
 
         auto exec_end = chrono::high_resolution_clock::now();
-        timer_val -= (long double)chrono::duration_cast<chrono::nanoseconds>(exec_end - exec_start).count() / 1000000;
+        timer_val -= ((long double)chrono::duration_cast<chrono::nanoseconds>(exec_end - exec_start).count()) / 1000000;
         exec_start = chrono::high_resolution_clock::now();
 
         if (I_FLAG == 0) {

@@ -32,7 +32,7 @@
 #define C_FLAG ((Emulator::cpu_context.psw.word & C_FLAG_MASK) >> C_FLAG_OFFS)
 #define N_FLAG ((Emulator::cpu_context.psw.word & N_FLAG_MASK) >> N_FLAG_OFFS)
 #define TR_FLAG ((Emulator::cpu_context.psw.word & TR_FLAG_MASK) >> TR_FLAG_OFFS)
-#define TL_FLAG ((Emulator::cpu_context.psw.word & TL_FLAG_OFFS) >> TL_FLAG_OFFS)
+#define TL_FLAG ((Emulator::cpu_context.psw.word & TL_FLAG_MASK) >> TL_FLAG_OFFS)
 #define I_FLAG ((Emulator::cpu_context.psw.word & I_FLAG_MASK) >> I_FLAG_OFFS)
 
 #define SET_Z_FLAG Emulator::cpu_context.psw.word |= Z_FLAG_MASK

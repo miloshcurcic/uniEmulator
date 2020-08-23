@@ -17,6 +17,7 @@ Input_File* Linker::read_input_file(string path) {
         const Byte format[ELF_FORMAT_LEN] = { 'E', 'L', 'F', '_', '1', '6' };
         
         if (memcmp(&header.format, &format, ELF_FORMAT_LEN) != 0) {
+            cout << header.format[1] << endl;
             throw EmulatorException(ERR_INVALID_INPUT_FORMAT);
         }
     

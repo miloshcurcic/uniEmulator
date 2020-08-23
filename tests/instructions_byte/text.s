@@ -53,8 +53,8 @@ _start:
 .equ char_a_offs, 2
 .equ char_b_offs, 4
 write_func:
-    movb char_a_offs(%r6), data_out
-    movb char_b_offs(%r6), data_out
+    movb char_a_offs(%sp), data_out
+    movb char_b_offs(%sp), data_out
     movb $0xA, data_out
     ret
 write_out:

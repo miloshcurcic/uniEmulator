@@ -15,7 +15,6 @@ enum Elf16_File_Type : Byte {
 struct Elf16_Header {
     Byte format[ELF_FORMAT_LEN] = { 'E', 'L', 'F', '_', '1', '6' };
     Elf16_File_Type type;
-    Addr pentry;
     Offs phoffs;
     Word phentries;
     Offs shoffs;
@@ -40,7 +39,7 @@ enum Elf16_Section_Flag : Byte {
 };
 
 struct Elf16_SH_Entry {
-    Word name;
+    Offs name;
     Elf16_Section_Type type;
     Offs offs;
     Word size;
@@ -58,7 +57,7 @@ enum Elf16_Sym_Type : Byte {
 };
 
 struct Elf16_ST_Entry {
-    Word name;
+    Offs name;
     Word value;
     Elf16_Sym_Bind bind;
     Elf16_Sym_Type type;

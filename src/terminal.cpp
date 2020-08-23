@@ -44,6 +44,7 @@ void Terminal::input_run() {
 }
 
 void Terminal::continue_input() {
+    // This can be spammed but that is a programming error, potentially throw an exception as that can cause terminal corruption?
     sem_post(&input_lock);
 }
 
